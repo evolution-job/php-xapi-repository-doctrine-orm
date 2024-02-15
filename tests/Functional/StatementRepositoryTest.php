@@ -11,7 +11,8 @@
 
 namespace XApi\Repository\ORM\Tests\Functional;
 
-use Doctrine\Common\Persistence\Mapping\Driver\SymfonyFileLocator;
+use Doctrine\Common\Persistence\Mapping\Driver\SymfonyFileLocator as LegacySymfonyFileLocator;
+use Doctrine\Persistence\Mapping\Driver\SymfonyFileLocator;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
@@ -25,10 +26,17 @@ class StatementRepositoryTest extends BaseStatementRepositoryTest
         $config = new Configuration();
         $config->setProxyDir(__DIR__.'/../proxies');
         $config->setProxyNamespace('Proxy');
-        $fileLocator = new SymfonyFileLocator(
-            array(__DIR__.'/../../metadata' => 'XApi\Repository\Doctrine\Mapping'),
-            '.orm.xml'
-        );
+        if (class_exists(SymfonyFileLocator::class)) {
+            $fileLocator = new SymfonyFileLocator(
+                array(__DIR__ . '/../../metadata' => 'XApi\Repository\Doctrine\Mapping'),
+                '.orm.xml'
+            );
+        } else {
+            $fileLocator = new LegacySymfonyFileLocator(
+                array(__DIR__ . '/../../metadata' => 'XApi\Repository\Doctrine\Mapping'),
+                '.orm.xml'
+            );
+        }
         $driver = new XmlDriver($fileLocator);
         $config->setMetadataDriverImpl($driver);
 
