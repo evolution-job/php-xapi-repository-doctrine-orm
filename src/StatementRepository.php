@@ -47,13 +47,15 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
      */
     public function storeStatement(Statement $statement, $flush = true): void
     {
-        $statement->actor = AvoidDuplicatesHelper::findActor($this->_em->createQueryBuilder(), $statement->actor);
+        if ($this->_em->createQueryBuilder()) {
+            $statement->actor = AvoidDuplicatesHelper::findActor($this->_em->createQueryBuilder(), $statement->actor);
 
-        $statement->context = AvoidDuplicatesHelper::findContext($this->_em->createQueryBuilder(), $statement->context);
+            $statement->context = AvoidDuplicatesHelper::findContext($this->_em->createQueryBuilder(), $statement->context);
 
-        $statement->object = AvoidDuplicatesHelper::findActivityStatementObject($this->_em->createQueryBuilder(), $statement->object);
+            $statement->object = AvoidDuplicatesHelper::findActivityStatementObject($this->_em->createQueryBuilder(), $statement->object);
 
-        $statement->verb = AvoidDuplicatesHelper::findVerb($this->_em->createQueryBuilder(), $statement->verb);
+            $statement->verb = AvoidDuplicatesHelper::findVerb($this->_em->createQueryBuilder(), $statement->verb);
+        }
 
         try {
             $this->_em->persist($statement);
