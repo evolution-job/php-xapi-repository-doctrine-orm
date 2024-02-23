@@ -11,13 +11,14 @@
         }
     ],
     "require": {
-        "php": "^5.6 || ^7.0",
+        "php": "^7.0",
+        "ext-json": "*",
         "doctrine/orm": "^2.3",
         "php-xapi/repository-api": "^0.4",
         "php-xapi/repository-doctrine": "^0.4"
     },
     "require-dev": {
-        "symfony/phpunit-bridge": "^3.4 || ^4.0"
+        "symfony/phpunit-bridge": "^4.0"
     },
     "provide": {
         "php-xapi/repository-implementation": "0.3"
