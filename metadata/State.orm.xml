@@ -1,0 +1,27 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+        http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="XApi\Repository\Doctrine\Mapping\State" table="xapi_state">
+        <id name="activityId" type="string">
+            <generator strategy="NONE" />
+        </id>
+
+        <id name="stateId" type="string">
+            <generator strategy="NONE" />
+        </id>
+
+        <field name="registrationId" type="string" nullable="false" />
+
+        <many-to-one field="actor" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">
+            <cascade>
+                <cascade-all />
+            </cascade>
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
+        </many-to-one>
+
+        <field name="data" type="text" nullable="true" />
+
+    </entity>
+</doctrine-mapping>
