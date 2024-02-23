@@ -18,6 +18,11 @@
         <field name="fileUrl" type="string" nullable="true" />
         <field name="content" type="text" nullable="true" />
 
-        <many-to-one field="statement" target-entity="XApi\Repository\Doctrine\Mapping\Statement" inversed-by="attachments" />
+        <many-to-one field="statement" target-entity="XApi\Repository\Doctrine\Mapping\Statement" inversed-by="attachments">
+            <cascade>
+                <cascade-all />
+            </cascade>
+            <join-column referenced-column-name="id" on-delete="CASCADE" />
+        </many-to-one>
     </entity>
 </doctrine-mapping>

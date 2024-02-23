@@ -8,6 +8,11 @@
             <generator strategy="AUTO" />
         </id>
 
+        <!-- indexes -->
+        <indexes>
+            <index columns="activity_id,activity_type" name="uniq_search_index"></index>
+        </indexes>
+
         <!-- discriminator column -->
         <field name="type" type="string" nullable="true" />
 
@@ -37,19 +42,19 @@
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </one-to-one>
-        <one-to-one field="verb" target-entity="XApi\Repository\Doctrine\Mapping\Verb">
+        <many-to-one field="verb" target-entity="XApi\Repository\Doctrine\Mapping\Verb">
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
-        </one-to-one>
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
+        </many-to-one>
         <one-to-one field="object" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </one-to-one>
 
         <!-- activity extensions -->
@@ -57,27 +62,31 @@
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </one-to-one>
 
         <!-- group members -->
-        <one-to-many target-entity="XApi\Repository\Doctrine\Mapping\StatementObject" mapped-by="group" field="members" />
+        <one-to-many target-entity="XApi\Repository\Doctrine\Mapping\StatementObject" mapped-by="group" field="members">
+            <cascade>
+                <cascade-all />
+            </cascade>
+        </one-to-many>
         <many-to-one target-entity="XApi\Repository\Doctrine\Mapping\StatementObject" field="group" inversed-by="members">
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </many-to-one>
 
         <!-- context activities -->
         <many-to-one target-entity="XApi\Repository\Doctrine\Mapping\Context" field="parentContext" inversed-by="parentActivities">
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </many-to-one>
         <many-to-one target-entity="XApi\Repository\Doctrine\Mapping\Context" field="groupingContext" inversed-by="groupingActivities">
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </many-to-one>
         <many-to-one target-entity="XApi\Repository\Doctrine\Mapping\Context" field="categoryContext" inversed-by="categoryActivities">
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </many-to-one>
         <many-to-one target-entity="XApi\Repository\Doctrine\Mapping\Context" field="otherContext" inversed-by="otherActivities">
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </many-to-one>
     </entity>
 </doctrine-mapping>

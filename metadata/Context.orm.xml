@@ -19,19 +19,19 @@
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </one-to-one>
         <one-to-one field="team" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </one-to-one>
         <one-to-one field="extensions" target-entity="XApi\Repository\Doctrine\Mapping\Extensions">
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </one-to-one>
 
         <!-- context activities -->

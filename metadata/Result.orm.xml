@@ -22,7 +22,7 @@
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </one-to-one>
     </entity>
 </doctrine-mapping>

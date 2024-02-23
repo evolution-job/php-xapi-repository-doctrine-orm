@@ -11,46 +11,46 @@
             <generator strategy="NONE" />
         </id>
 
-        <field name="created" type="bigint" nullable="true" />
-        <field name="stored" type="bigint" nullable="true" />
+        <field name="created" type="datetime" nullable="true" />
+        <field name="stored" type="datetime" nullable="true" />
         <field name="hasAttachments" type="boolean" />
 
-        <one-to-one field="actor" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">
+        <many-to-one field="actor" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
-        </one-to-one>
-        <one-to-one field="verb" target-entity="XApi\Repository\Doctrine\Mapping\Verb">
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
+        </many-to-one>
+        <many-to-one field="verb" target-entity="XApi\Repository\Doctrine\Mapping\Verb">
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
-        </one-to-one>
-        <one-to-one field="object" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
+        </many-to-one>
+        <many-to-one field="object" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
-        </one-to-one>
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
+        </many-to-one>
         <one-to-one field="result" target-entity="XApi\Repository\Doctrine\Mapping\Result">
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </one-to-one>
-        <one-to-one field="authority" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">
+        <many-to-one field="authority" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
-        </one-to-one>
-        <one-to-one field="context" target-entity="XApi\Repository\Doctrine\Mapping\Context">
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
+        </many-to-one>
+        <many-to-one field="context" target-entity="XApi\Repository\Doctrine\Mapping\Context">
             <cascade>
                 <cascade-all />
             </cascade>
-            <join-column referenced-column-name="identifier" />
-        </one-to-one>
+            <join-column referenced-column-name="identifier" on-delete="CASCADE" />
+        </many-to-one>
 
         <!-- attachments -->
         <one-to-many field="attachments" target-entity="XApi\Repository\Doctrine\Mapping\Attachment" mapped-by="statement">

@@ -18,6 +18,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\ORM\Tools\SchemaTool;
 use XApi\Repository\Doctrine\Test\Functional\StatementRepositoryTest as BaseStatementRepositoryTest;
+use XApi\Repository\Doctrine\Mapping\Statement;
 
 class StatementRepositoryTest extends BaseStatementRepositoryTest
 {
@@ -43,12 +44,12 @@ class StatementRepositoryTest extends BaseStatementRepositoryTest
         return EntityManager::create(array('driver' => 'pdo_sqlite', 'path' => __DIR__.'/../data/db.sqlite'), $config);
     }
 
-    protected function getStatementClassName()
+    protected function getStatementClassName(): string
     {
-        return 'XApi\Repository\Doctrine\Mapping\Statement';
+        return Statement::class;
     }
 
-    protected function cleanDatabase()
+    protected function cleanDatabase(): void
     {
         $metadata = $this->objectManager->getMetadataFactory()->getAllMetadata();
         $tool = new SchemaTool($this->objectManager);
