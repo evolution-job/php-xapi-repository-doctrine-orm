@@ -12,9 +12,9 @@
         <field name="contentType" type="string" />
         <field name="length" type="integer" />
         <field name="sha2" type="string" />
-        <field name="display" type="json_array" />
+        <field name="display" type="json" />
         <field name="hasDescription" type="boolean" />
-        <field name="description" type="json_array" nullable="true" />
+        <field name="description" type="json" nullable="true" />
         <field name="fileUrl" type="string" nullable="true" />
         <field name="content" type="text" nullable="true" />
 

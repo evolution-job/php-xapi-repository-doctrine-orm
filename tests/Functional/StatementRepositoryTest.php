@@ -11,37 +11,48 @@
 
 namespace XApi\Repository\ORM\Tests\Functional;
 
-use Doctrine\Common\Persistence\Mapping\Driver\SymfonyFileLocator as LegacySymfonyFileLocator;
-use Doctrine\Persistence\Mapping\Driver\SymfonyFileLocator;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Exception\MissingMappingDriverImplementation;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\ORM\Tools\SchemaTool;
-use XApi\Repository\Doctrine\Test\Functional\StatementRepositoryTest as BaseStatementRepositoryTest;
+use Doctrine\ORM\Tools\ToolsException;
+use Doctrine\Persistence\Mapping\Driver\SymfonyFileLocator;
+use Doctrine\Persistence\ObjectManager;
 use XApi\Repository\Doctrine\Mapping\Statement;
+use XApi\Repository\Doctrine\Tests\Functional\StatementRepositoryTest as BaseStatementRepositoryTest;
+use XApi\Repository\ORM\QuoteStrategy;
 
 class StatementRepositoryTest extends BaseStatementRepositoryTest
 {
-    protected function createObjectManager()
+    /**
+     * @throws MissingMappingDriverImplementation
+     * @throws Exception
+     * @throws ToolsException
+     */
+    protected function createObjectManager(): ObjectManager
     {
-        $config = new Configuration();
-        $config->setProxyDir(__DIR__.'/../proxies');
-        $config->setProxyNamespace('Proxy');
-        if (class_exists(SymfonyFileLocator::class)) {
-            $fileLocator = new SymfonyFileLocator(
-                array(__DIR__ . '/../../metadata' => 'XApi\Repository\Doctrine\Mapping'),
-                '.orm.xml'
-            );
-        } else {
-            $fileLocator = new LegacySymfonyFileLocator(
-                array(__DIR__ . '/../../metadata' => 'XApi\Repository\Doctrine\Mapping'),
-                '.orm.xml'
-            );
-        }
-        $driver = new XmlDriver($fileLocator);
-        $config->setMetadataDriverImpl($driver);
+        $configuration = new Configuration();
+        $configuration->setProxyDir(__DIR__ . '/../proxies');
+        $configuration->setProxyNamespace('Proxy');
+        $configuration->setQuoteStrategy(new QuoteStrategy());
 
-        return EntityManager::create(array('driver' => 'pdo_sqlite', 'path' => __DIR__.'/../data/db.sqlite'), $config);
+        $symfonyFileLocator = new SymfonyFileLocator([__DIR__ . '/../../metadata' => 'XApi\Repository\Doctrine\Mapping'], '.orm.xml');
+
+        $xmlDriver = new XmlDriver($symfonyFileLocator);
+        $configuration->setMetadataDriverImpl($xmlDriver);
+
+        $connection = DriverManager::getConnection(['url' => 'sqlite3:///:memory:'], $configuration);
+
+        $entityManager = new EntityManager($connection, $configuration);
+
+        // Create Schema
+        $schemaTool = new SchemaTool($entityManager);
+        $schemaTool->createSchema($entityManager->getMetadataFactory()->getAllMetadata());
+
+        return $entityManager;
     }
 
     protected function getStatementClassName(): string
@@ -51,10 +62,17 @@ class StatementRepositoryTest extends BaseStatementRepositoryTest
 
     protected function cleanDatabase(): void
     {
+        $connection = $this->objectManager->getConnection();
+        $databasePlatform = $connection->getDatabasePlatform();
+
+        // Remove All
         $metadata = $this->objectManager->getMetadataFactory()->getAllMetadata();
-        $tool = new SchemaTool($this->objectManager);
-        $tool->dropDatabase();
-        $tool->createSchema($metadata);
+        foreach ($metadata as $classMetadata) {
+            $query = $databasePlatform->getTruncateTableSQL(
+                $this->objectManager->getClassMetadata($classMetadata->getName())->getTableName()
+            );
+            $connection->executeUpdate($query);
+        }
 
         parent::cleanDatabase();
     }

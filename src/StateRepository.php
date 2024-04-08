@@ -12,8 +12,6 @@
 namespace XApi\Repository\ORM;
 
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use XApi\Repository\Doctrine\Mapping\State;
 use XApi\Repository\Doctrine\Repository\Mapping\StateRepository as BaseStateRepository;
 
@@ -37,8 +35,8 @@ final class StateRepository extends EntityRepository implements BaseStateReposit
     {
         // Store or Update?
         $mappedState = $this->findState([
-            "stateId"        => $state->stateId,
-            "activityId"     => $state->activityId,
+            "stateId" => $state->stateId,
+            "activityId" => $state->activityId,
             "registrationId" => $state->registrationId
         ]);
 
@@ -49,14 +47,10 @@ final class StateRepository extends EntityRepository implements BaseStateReposit
             $state->actor = AvoidDuplicatesHelper::findActor($this->_em->createQueryBuilder(), $state->actor);
         }
 
-        try {
-            $this->_em->persist($state);
+        $this->_em->persist($state);
 
-            if ($flush) {
-                $this->_em->flush();
-            }
-        } catch (OptimisticLockException|ORMException $e) {
-            //..
+        if ($flush) {
+            $this->_em->flush();
         }
     }
 }

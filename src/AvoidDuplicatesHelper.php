@@ -106,7 +106,7 @@ abstract class AvoidDuplicatesHelper
 
                 return $foundVerb;
             }
-        } catch (NonUniqueResultException $e) { }
+        } catch (NonUniqueResultException) { }
 
         return $verb;
     }

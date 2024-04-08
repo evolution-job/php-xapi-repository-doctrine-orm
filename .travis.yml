@@ -14,13 +14,8 @@ env:
 matrix:
   fast_finish: true
   include:
-    - php: 5.6
-      env: COMPOSER_OPTIONS="--prefer-lowest --prefer-stable"
-    - php: 7.0
-      env: xdebug="yes" PHPUNIT_OPTIONS="--coverage-clover=coverage.clover"
-    - php: 7.1
-    - php: 7.2
-      env: SYMFONY_PHPUNIT_VERSION=7.5
+    - php: 8.1
+    - php: 8.2
 
 before_install:
   - if [[ "$xdebug" != "yes" ]]; then phpenv config-rm xdebug.ini; fi

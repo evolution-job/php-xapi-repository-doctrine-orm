@@ -11,7 +11,7 @@
 
 namespace XApi\Repository\ORM\Tests\Unit\Repository;
 
-use XApi\Repository\Doctrine\Test\Unit\Repository\Mapping\StatementRepositoryTest as BaseStatementRepositoryTest;
+use XApi\Repository\Doctrine\Tests\Unit\Repository\Mapping\StatementRepositoryTest as BaseStatementRepositoryTest;
 use XApi\Repository\ORM\StatementRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\UnitOfWork;
@@ -19,17 +19,17 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 
 class StatementRepositoryTest extends BaseStatementRepositoryTest
 {
-    protected function getObjectManagerClass()
+    protected function getObjectManagerClass(): string
     {
         return EntityManager::class;
     }
 
-    protected function getUnitOfWorkClass()
+    protected function getUnitOfWorkClass(): string
     {
         return UnitOfWork::class;
     }
 
-    protected function getClassMetadataClass()
+    protected function getClassMetadataClass(): string
     {
         return ClassMetadata::class;
     }
