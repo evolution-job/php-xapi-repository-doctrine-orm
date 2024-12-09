@@ -11,8 +11,11 @@
 
 namespace XApi\Repository\ORM\Tests\Unit\Repository;
 
+use Doctrine\ORM\Mapping\DefaultNamingStrategy;
+use PHPUnit\Framework\MockObject\MockObject;
 use XApi\Repository\Doctrine\Tests\Unit\Repository\Mapping\StatementRepositoryTest as BaseStatementRepositoryTest;
 use XApi\Repository\ORM\StatementRepository;
+use XApi\Repository\Doctrine\Mapping\Statement;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\UnitOfWork;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -36,6 +39,8 @@ class StatementRepositoryTest extends BaseStatementRepositoryTest
 
     protected function createMappedStatementRepository($objectManager, $unitOfWork, $classMetadata): StatementRepository
     {
+        $classMetadata = new ClassMetadata(Statement::class, new DefaultNamingStrategy());
+
         return new StatementRepository($objectManager, $classMetadata);
     }
 }

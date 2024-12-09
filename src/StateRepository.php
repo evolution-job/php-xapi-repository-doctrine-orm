@@ -44,13 +44,13 @@ final class StateRepository extends EntityRepository implements BaseStateReposit
             $mappedState->data = $state->data;
             $state = $mappedState;
         } else {
-            $state->actor = AvoidDuplicatesHelper::findActor($this->_em->createQueryBuilder(), $state->actor);
+            $state->actor = AvoidDuplicatesHelper::findActor($this->getEntityManager()->createQueryBuilder(), $state->actor);
         }
 
-        $this->_em->persist($state);
+        $this->getEntityManager()->persist($state);
 
         if ($flush) {
-            $this->_em->flush();
+            $this->getEntityManager()->flush();
         }
     }
 }

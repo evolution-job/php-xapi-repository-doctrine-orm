@@ -11,6 +11,7 @@
 
 namespace XApi\Repository\ORM\Tests\Functional;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
 use Doctrine\ORM\Configuration;
@@ -44,7 +45,12 @@ class StatementRepositoryTest extends BaseStatementRepositoryTest
         $xmlDriver = new XmlDriver($symfonyFileLocator);
         $configuration->setMetadataDriverImpl($xmlDriver);
 
-        $connection = DriverManager::getConnection(['url' => 'sqlite3:///:memory:'], $configuration);
+        $params = [
+            'driver' => 'sqlite3',
+            'memory' => true,
+            'url' => 'sqlite3:///:memory:',
+        ];
+        $connection = DriverManager::getConnection($params, $configuration);
 
         $entityManager = new EntityManager($connection, $configuration);
 
@@ -62,6 +68,7 @@ class StatementRepositoryTest extends BaseStatementRepositoryTest
 
     protected function cleanDatabase(): void
     {
+        /** @var Connection $connection */
         $connection = $this->objectManager->getConnection();
         $databasePlatform = $connection->getDatabasePlatform();
 
@@ -71,7 +78,8 @@ class StatementRepositoryTest extends BaseStatementRepositoryTest
             $query = $databasePlatform->getTruncateTableSQL(
                 $this->objectManager->getClassMetadata($classMetadata->getName())->getTableName()
             );
-            $connection->executeUpdate($query);
+
+            $connection->executeStatement($query);
         }
 
         parent::cleanDatabase();

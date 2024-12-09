@@ -14,23 +14,24 @@ namespace XApi\Repository\ORM;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
+use Doctrine\ORM\Mapping\JoinColumnMapping;
 
 /**
  * @author Mathieu Boldo <mathieu.boldo@entrili.com>
  */
 class QuoteStrategy extends DefaultQuoteStrategy
 {
-    public function getColumnName($fieldName, ClassMetadata $classMetadata, AbstractPlatform $platform): string
+    public function getColumnName($fieldName, ClassMetadata $class, AbstractPlatform $platform): string
     {
-        return isset($classMetadata->fieldMappings[$fieldName]['quoted']) ? $platform->quoteIdentifier($classMetadata->fieldMappings[$fieldName]['columnName']) : $this->quote($classMetadata->fieldMappings[$fieldName]['columnName']);
+        return isset($class->fieldMappings[$fieldName]['quoted']) ? $platform->quoteIdentifier($class->fieldMappings[$fieldName]['columnName']) : $this->quote($class->fieldMappings[$fieldName]['columnName']);
     }
 
-    public function getJoinColumnName(array $joinColumn, ClassMetadata $classMetadata, AbstractPlatform $platform): string
+    public function getJoinColumnName(array|JoinColumnMapping $joinColumn, ClassMetadata $class, AbstractPlatform $platform): string
     {
         return isset($joinColumn['quoted']) ? $platform->quoteIdentifier($joinColumn['name']) : $this->quote($joinColumn['name']);
     }
 
-    public function getReferencedJoinColumnName(array $joinColumn, ClassMetadata $classMetadata, AbstractPlatform $platform): string
+    public function getReferencedJoinColumnName(array|JoinColumnMapping $joinColumn, ClassMetadata $class, AbstractPlatform $platform): string
     {
         return isset($joinColumn['quoted']) ? $platform->quoteIdentifier($joinColumn['referencedColumnName']) : $this->quote($joinColumn['referencedColumnName']);
     }
