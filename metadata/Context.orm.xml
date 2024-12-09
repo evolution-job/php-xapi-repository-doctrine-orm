@@ -8,6 +8,10 @@
             <generator strategy="AUTO" />
         </id>
 
+        <indexes>
+            <index columns="registration" name="registration_uniq_search_index"></index>
+        </indexes>
+
         <field name="registration" type="string" nullable="true" />
         <field name="hasContextActivities" type="boolean" nullable="true" />
         <field name="revision" type="string" nullable="true" />

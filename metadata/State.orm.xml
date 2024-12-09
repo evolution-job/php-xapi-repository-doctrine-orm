@@ -8,11 +8,13 @@
             <generator strategy="NONE" />
         </id>
 
-        <id name="stateId" type="string">
+        <id name="registrationId" type="string" column="registration" >
             <generator strategy="NONE" />
         </id>
 
-        <field name="registrationId" type="string" nullable="false" />
+        <id name="stateId" type="string">
+            <generator strategy="NONE" />
+        </id>
 
         <many-to-one field="actor" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">
             <cascade>

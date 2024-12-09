@@ -12,13 +12,7 @@
 namespace XApi\Repository\ORM;
 
 use Doctrine\ORM\EntityRepository as parentAlias;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
-use XApi\Repository\Doctrine\Mapping\Context;
 use XApi\Repository\Doctrine\Mapping\Statement;
-use XApi\Repository\Doctrine\Mapping\StatementObject;
-use XApi\Repository\Doctrine\Mapping\Verb;
 use XApi\Repository\Doctrine\Repository\Mapping\StatementRepository as BaseStatementRepository;
 
 /**
@@ -57,14 +51,10 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
             $statement->verb = AvoidDuplicatesHelper::findVerb($this->_em->createQueryBuilder(), $statement->verb);
         }
 
-        try {
-            $this->_em->persist($statement);
+        $this->_em->persist($statement);
 
-            if ($flush) {
-                $this->_em->flush();
-            }
-        } catch (OptimisticLockException|ORMException $e) {
-            //..
+        if ($flush) {
+            $this->_em->flush();
         }
     }
 }

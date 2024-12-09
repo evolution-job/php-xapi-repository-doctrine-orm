@@ -8,6 +8,6 @@
             <generator strategy="AUTO" />
         </id>
 
-        <field name="extensions" type="json_array" />
+        <field name="extensions" type="json" />
     </entity>
 </doctrine-mapping>

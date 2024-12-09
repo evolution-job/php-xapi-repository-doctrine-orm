@@ -8,7 +8,12 @@
             <generator strategy="AUTO" />
         </id>
 
-        <field name="id" type="string" />
-        <field name="display" type="json_array" />
+        <indexes>
+            <index columns="id" name="verb_uniq_search_index"></index>
+        </indexes>
+
+        <field name="id" type="string" unique="true" />
+
+        <field name="display" type="json" />
     </entity>
 </doctrine-mapping>

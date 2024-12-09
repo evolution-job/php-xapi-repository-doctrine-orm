@@ -20,10 +20,10 @@ use XApi\Repository\Doctrine\Mapping\Verb;
  */
 abstract class AvoidDuplicatesHelper
 {
-    public static function findActor(QueryBuilder $queryBuilder, ?StatementObject $actor): StatementObject
+    public static function findActor(QueryBuilder $queryBuilder, ?StatementObject $statementObject): StatementObject
     {
-        if (!$actor) {
-            return $actor;
+        if (!$statementObject instanceof StatementObject) {
+            return $statementObject;
         }
 
         $queryBuilder
@@ -34,39 +34,39 @@ abstract class AvoidDuplicatesHelper
             ->andWhere($queryBuilder->expr()->like('o.accountHomePage', ':accountHomePage'))
             ->andWhere($queryBuilder->expr()->like('o.name', ':name'))
             ->setParameter('type', 'agent')
-            ->setParameter('accountName', $actor->accountName)
-            ->setParameter('accountHomePage', $actor->accountHomePage)
-            ->setParameter('name', $actor->name);
+            ->setParameter('accountName', $statementObject->accountName)
+            ->setParameter('accountHomePage', $statementObject->accountHomePage)
+            ->setParameter('name', $statementObject->name);
 
         if ($actors = $queryBuilder->getQuery()->getResult()) {
             return $actors[0]; // Link with first found
         }
 
-        return $actor;
+        return $statementObject;
     }
 
-    public static function findActivityStatementObject(QueryBuilder $queryBuilder, ?StatementObject $activity): StatementObject
+    public static function findActivityStatementObject(QueryBuilder $queryBuilder, ?StatementObject $statementObject): StatementObject
     {
-        if (!$activity) {
-            return $activity;
+        if (!$statementObject instanceof StatementObject) {
+            return $statementObject;
         }
 
         $queryBuilder
             ->select('o')
             ->from(StatementObject::class, 'o')
             ->andWhere($queryBuilder->expr()->eq('o.activityId', ':activityId'))
-            ->setParameter('activityId', $activity->activityId);
+            ->setParameter('activityId', $statementObject->activityId);
 
         if ($activities = $queryBuilder->getQuery()->getResult()) {
             return $activities[0]; // Link with first found
         }
 
-        return $activity;
+        return $statementObject;
     }
 
     public static function findContext(QueryBuilder $queryBuilder, ?Context $context)
     {
-        if (!$context) {
+        if (!$context instanceof Context) {
             return $context;
         }
 
@@ -85,7 +85,7 @@ abstract class AvoidDuplicatesHelper
 
     public static function findVerb(QueryBuilder $queryBuilder, ?Verb $verb): Verb
     {
-        if (!$verb) {
+        if (!$verb instanceof Verb) {
             return $verb;
         }
 
@@ -106,7 +106,7 @@ abstract class AvoidDuplicatesHelper
 
                 return $foundVerb;
             }
-        } catch (NonUniqueResultException $e) { }
+        } catch (NonUniqueResultException) { }
 
         return $verb;
     }
