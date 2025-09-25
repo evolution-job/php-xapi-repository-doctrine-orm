@@ -15,11 +15,11 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\DefaultNamingStrategy;
 use Doctrine\ORM\UnitOfWork;
-use XApi\Repository\Doctrine\Mapping\Statement;
-use XApi\Repository\Doctrine\Tests\Unit\Repository\Mapping\StatementRepositoryTestCase;
-use XApi\Repository\ORM\StatementRepository;
+use XApi\Repository\Doctrine\Mapping\State;
+use XApi\Repository\Doctrine\Tests\Unit\Repository\Mapping\StateRepositoryTestCase;
+use XApi\Repository\ORM\StateRepository;
 
-class StatementRepositoryTest extends StatementRepositoryTestCase
+class StateRepositoryTest extends StateRepositoryTestCase
 {
     protected function getObjectManagerClass(): string
     {
@@ -36,10 +36,10 @@ class StatementRepositoryTest extends StatementRepositoryTestCase
         return ClassMetadata::class;
     }
 
-    protected function createMappedStatementRepository($objectManager, $unitOfWork, $classMetadata): StatementRepository
+    protected function createMappedStateRepository($objectManager, $unitOfWork, $classMetadata): StateRepository
     {
-        $classMetadata = new ClassMetadata(Statement::class, new DefaultNamingStrategy());
+        $classMetadata = new ClassMetadata(State::class, new DefaultNamingStrategy());
 
-        return new StatementRepository($objectManager, $classMetadata);
+        return new StateRepository($objectManager, $classMetadata);
     }
 }

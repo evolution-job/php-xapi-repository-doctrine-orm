@@ -1,8 +1,7 @@
 .idea
 /composer.lock
 /phpunit.xml
-/tests/data/*
-!/tests/data/.gitkeep
-/tests/proxies/*
-!/tests/proxies/.gitkeep
+/tests/cache/*
+!/tests/cache/.gitkeep
+!/tests/cache/proxies/.gitkeep
 /vendor

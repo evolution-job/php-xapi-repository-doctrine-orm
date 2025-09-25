@@ -8,12 +8,16 @@
             <generator strategy="AUTO" />
         </id>
 
-        <field name="type" type="string" nullable="true" />
+        <indexes>
+            <index columns="accountName, accountHomePage, mbox, mboxSha1Sum, openId, type" name="actor_uniq_search_index"></index>
+        </indexes>
+
+        <field name="accountHomePage" type="string" nullable="true" />
+        <field name="accountName" type="string" nullable="true" />
         <field name="mbox" type="string" nullable="true" />
         <field name="mboxSha1Sum" type="string" nullable="true" />
-        <field name="openId" type="string" nullable="true" />
-        <field name="accountName" type="string" nullable="true" />
-        <field name="accountHomePage" type="string" nullable="true" />
         <field name="name" type="string" nullable="true" />
+        <field name="openId" type="string" nullable="true" />
+        <field name="type" type="string" nullable="true" />
     </entity>
 </doctrine-mapping>

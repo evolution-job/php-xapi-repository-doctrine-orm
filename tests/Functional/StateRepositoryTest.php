@@ -23,11 +23,11 @@ use Doctrine\ORM\Tools\ToolsException;
 use Doctrine\Persistence\Mapping\Driver\SymfonyFileLocator;
 use Doctrine\Persistence\ObjectManager;
 use Override;
-use XApi\Repository\Doctrine\Mapping\Statement;
-use XApi\Repository\Doctrine\Tests\Functional\StatementRepositoryTestCase;
+use XApi\Repository\Doctrine\Mapping\State;
+use XApi\Repository\Doctrine\Tests\Functional\StateRepositoryTestCase;
 use XApi\Repository\ORM\QuoteStrategy;
 
-class StatementRepositoryTest extends StatementRepositoryTestCase
+class StateRepositoryTest extends StateRepositoryTestCase
 {
     /**
      * @throws MissingMappingDriverImplementation
@@ -42,7 +42,6 @@ class StatementRepositoryTest extends StatementRepositoryTestCase
         $configuration->setQuoteStrategy(new QuoteStrategy());
 
         $symfonyFileLocator = new SymfonyFileLocator([__DIR__ . '/../../metadata' => 'XApi\Repository\Doctrine\Mapping'], '.orm.xml');
-
         $xmlDriver = new XmlDriver($symfonyFileLocator);
         $configuration->setMetadataDriverImpl($xmlDriver);
 
@@ -62,9 +61,9 @@ class StatementRepositoryTest extends StatementRepositoryTestCase
         return $entityManager;
     }
 
-    protected function getStatementClassName(): string
+    protected function getStateClassName(): string
     {
-        return Statement::class;
+        return State::class;
     }
 
     #[Override]
