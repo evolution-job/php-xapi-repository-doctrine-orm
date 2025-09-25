@@ -7,7 +7,7 @@
         repository-class="XApi\Repository\ORM\StatementRepository"
         table="xapi_statement">
 
-        <id name="id" type="string">
+        <id name="id" type="string" length="255">
             <generator strategy="NONE" />
         </id>
 

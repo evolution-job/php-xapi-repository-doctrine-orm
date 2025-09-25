@@ -23,7 +23,7 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
     /**
      * {@inheritdoc}
      */
-    public function findStatement(array $criteria)
+    public function findStatement(array $criteria): ?Statement
     {
         return $this->findOneBy($criteria);
     }
@@ -42,6 +42,7 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
     public function storeStatement(Statement $statement, $flush = true): void
     {
         if ($this->getEntityManager()->createQueryBuilder()) {
+
             $statement->actor = AvoidDuplicatesHelper::findActor($this->getEntityManager()->createQueryBuilder(), $statement->actor);
 
             $statement->context = AvoidDuplicatesHelper::findContext($this->getEntityManager()->createQueryBuilder(), $statement->context);
