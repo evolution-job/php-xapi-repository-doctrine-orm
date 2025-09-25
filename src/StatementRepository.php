@@ -23,7 +23,7 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
     /**
      * {@inheritdoc}
      */
-    public function findStatement(array $criteria)
+    public function findStatement(array $criteria): ?Statement
     {
         return $this->findOneBy($criteria);
     }
@@ -42,13 +42,18 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
     public function storeStatement(Statement $statement, $flush = true): void
     {
         if ($this->getEntityManager()->createQueryBuilder()) {
-            $statement->actor = AvoidDuplicatesHelper::findActor($this->getEntityManager()->createQueryBuilder(), $statement->actor);
 
-            $statement->context = AvoidDuplicatesHelper::findContext($this->getEntityManager()->createQueryBuilder(), $statement->context);
+            if ($context = DoctrineQueryHelper::findContext($this->getEntityManager()->createQueryBuilder(), $statement->context)) {
+                $statement->context = $context;
+            }
 
-            $statement->object = AvoidDuplicatesHelper::findActivityStatementObject($this->getEntityManager()->createQueryBuilder(), $statement->object);
+            if ($object = DoctrineQueryHelper::findActivityStatementObject($this->getEntityManager()->createQueryBuilder(), $statement->object)) {
+                $statement->object = $object;
+            }
 
-            $statement->verb = AvoidDuplicatesHelper::findVerb($this->getEntityManager()->createQueryBuilder(), $statement->verb);
+            if ($verb = DoctrineQueryHelper::findVerb($this->getEntityManager()->createQueryBuilder(), $statement->verb)) {
+                $statement->verb = $verb;
+            }
         }
 
         $this->getEntityManager()->persist($statement);
@@ -56,5 +61,6 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+
     }
 }

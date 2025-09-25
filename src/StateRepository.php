@@ -23,9 +23,57 @@ final class StateRepository extends EntityRepository implements BaseStateReposit
     /**
      * {@inheritdoc}
      */
-    public function findState(array $criteria)
+    public function findState(State $state): ?State
     {
+        if ($agent = DoctrineQueryHelper::findActor($this->getEntityManager()->createQueryBuilder(), $state->agent)) {
+            $state->agent = $agent;
+        }
+
+        $criteria = [
+            'activityId' => $state->activityId,
+            'agent'      => $state->agent,
+            'stateId'    => $state->stateId,
+        ];
+
+        if ($state->registrationId) {
+            $criteria['registrationId'] = $state->registrationId;
+        }
+
         return $this->findOneBy($criteria);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function findStates(State $state): array
+    {
+        if ($agent = DoctrineQueryHelper::findActor($this->getEntityManager()->createQueryBuilder(), $state->agent)) {
+            $state->agent = $agent;
+        }
+
+        $criteria = [
+            'activityId' => $state->activityId,
+            'agent'      => $state->agent
+        ];
+
+        if ($state->registrationId) {
+            $criteria['registrationId'] = $state->registrationId;
+        }
+
+        return $this->findBy($criteria);
+    }
+
+    public function removeState(State $state, bool $flush = true): void
+    {
+        $states = $this->findStates($state);
+
+        foreach ($states as $foundState) {
+            $this->getEntityManager()->remove($foundState);
+        }
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
     }
 
     /**
@@ -33,21 +81,18 @@ final class StateRepository extends EntityRepository implements BaseStateReposit
      */
     public function storeState(State $state, $flush = true): void
     {
-        // Store or Update?
-        $mappedState = $this->findState([
-            "stateId" => $state->stateId,
-            "activityId" => $state->activityId,
-            "registrationId" => $state->registrationId
-        ]);
-
-        if ($mappedState instanceof State) { // Update
-            $mappedState->data = $state->data;
-            $state = $mappedState;
-        } else {
-            $state->actor = AvoidDuplicatesHelper::findActor($this->getEntityManager()->createQueryBuilder(), $state->actor);
+        if ($agent = DoctrineQueryHelper::findActor($this->getEntityManager()->createQueryBuilder(), $state->agent)) {
+            $state->agent = $agent;
         }
 
-        $this->getEntityManager()->persist($state);
+        $foundState = $this->findState($state);
+
+        if ($foundState instanceof State) { // Update
+            $foundState->data = $state->data;
+            $this->getEntityManager()->persist($foundState);
+        } else {
+            $this->getEntityManager()->persist($state);
+        }
 
         if ($flush) {
             $this->getEntityManager()->flush();
