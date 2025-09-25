@@ -23,7 +23,7 @@ final class StateRepository extends EntityRepository implements BaseStateReposit
     /**
      * {@inheritdoc}
      */
-    public function findState(array $criteria)
+    public function findState(array $criteria): ?State
     {
         return $this->findOneBy($criteria);
     }
@@ -35,19 +35,18 @@ final class StateRepository extends EntityRepository implements BaseStateReposit
     {
         // Store or Update?
         $mappedState = $this->findState([
-            "stateId" => $state->stateId,
-            "activityId" => $state->activityId,
-            "registrationId" => $state->registrationId
+            "activityId"     => $state->activityId,
+            "registrationId" => $state->registrationId,
+            "stateId"        => $state->stateId
         ]);
 
         if ($mappedState instanceof State) { // Update
             $mappedState->data = $state->data;
-            $state = $mappedState;
+            $this->getEntityManager()->persist($mappedState);
         } else {
             $state->actor = AvoidDuplicatesHelper::findActor($this->getEntityManager()->createQueryBuilder(), $state->actor);
+            $this->getEntityManager()->persist($state);
         }
-
-        $this->getEntityManager()->persist($state);
 
         if ($flush) {
             $this->getEntityManager()->flush();
