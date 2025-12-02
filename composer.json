@@ -43,7 +43,8 @@
         "roave/security-advisories": "dev-latest",
         "phpunit/phpunit": "^11.0",
         "rector/rector": "^2.0",
-        "symfony/phpunit-bridge": "^7.3"
+        "symfony/phpunit-bridge": "^7.3",
+        "symfony/var-exporter": "^7.3"
     },
     "provide": {
         "php-xapi/repository-implementation": "0.6"
