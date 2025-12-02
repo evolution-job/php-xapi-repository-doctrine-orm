@@ -5,6 +5,7 @@
 
     <entity name="XApi\Repository\Doctrine\Mapping\State" repository-class="XApi\Repository\ORM\StateRepository"
             table="xapi_state">
+
         <id name="activityId" type="string">
             <generator strategy="NONE" />
         </id>
@@ -13,7 +14,9 @@
             <generator strategy="NONE" />
         </id>
 
-        <field name="registrationId" type="string" column="registration" nullable="true" ></field>
+        <id name="agent" association-key="true" >
+            <generator strategy="NONE" />
+        </id>
 
         <many-to-one field="agent" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">
             <cascade>
@@ -23,6 +26,8 @@
         </many-to-one>
 
         <field name="data" type="text" nullable="true" />
+
+        <field name="registrationId" type="string" column="registration" nullable="true" />
 
     </entity>
 </doctrine-mapping>

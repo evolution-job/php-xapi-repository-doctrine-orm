@@ -12,6 +12,7 @@
 namespace XApi\Repository\ORM;
 
 use Doctrine\ORM\EntityRepository as parentAlias;
+use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\Expr\Andx;
 use Doctrine\ORM\QueryBuilder;
 use Xabbuh\XApi\Model\Agent;
@@ -42,8 +43,9 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
         $queryBuilder
             ->select('s, a, o, v')
             ->leftJoin('s.actor', 'a')
-            ->leftJoin('s.object', 'o')
             ->leftJoin('s.verb', 'v')
+            ->leftJoin('s.object', 'o')
+            ->leftJoin('s.context', 'c')
             ->setMaxResults($criteria['limit'])
             ->orderBy('s.created', $criteria['ascending'] === 'true' ? 'ASC' : 'DESC');
 
@@ -59,7 +61,7 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
 
         if (isset($criteria['registration'])) {
             $queryBuilder
-                ->andWhere($queryBuilder->expr()->eq('s.registration', ':registration'))
+                ->andWhere($queryBuilder->expr()->eq('c.registration', ':registration'))
                 ->setParameter('registration', $criteria['registration']);
         }
 
@@ -91,6 +93,10 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
     {
         if ($this->getEntityManager()->createQueryBuilder()) {
 
+            if ($actor = DoctrineQueryHelper::findActor($this->getEntityManager()->createQueryBuilder(), $statement->actor)) {
+                $statement->actor = $actor;
+            }
+
             if ($context = DoctrineQueryHelper::findContext($this->getEntityManager()->createQueryBuilder(), $statement->context)) {
                 $statement->context = $context;
             }
@@ -109,9 +115,31 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
         if ($flush) {
             $this->getEntityManager()->flush();
         }
-
     }
+    private function findStatementsRelatedActivities(QueryBuilder $queryBuilder, Expr\Orx $orX): void
+    {
+        /**
+         * Apply the Activity filter broadly. Include Statements for which the Object, any
+         * of the context Activities, or any of those properties in a contained SubStatement
+         * match the Activity parameter, instead of that parameter's normal behavior.
+         * Matching is defined in the same way it is for the "activity" parameter.
+         *
+         * To retrieve statement where the activity is in other locations of the statement.
+         * Particularly important when we want to get all statements from a nested activity using one of
+         * the ‘contextActivities’ slots.
+         */
+        $queryBuilder
+            ->leftJoin('c.parentActivities', 'pAct')
+            ->leftJoin('c.groupingActivities', 'gAct')
+            ->leftJoin('c.categoryActivities', 'cAct')
+            ->leftJoin('c.otherActivities', 'oAct');
 
+        $orX
+            ->add($queryBuilder->expr()->eq('pAct.activityId', ':activityId'))
+            ->add($queryBuilder->expr()->eq('gAct.activityId', ':activityId'))
+            ->add($queryBuilder->expr()->eq('cAct.activityId', ':activityId'))
+            ->add($queryBuilder->expr()->eq('oAct.activityId', ':activityId'));
+    }
     private function resolveActivityFilter(QueryBuilder $queryBuilder, array $criteria): void
     {
         if (!isset($criteria['activity'])) {
@@ -121,16 +149,17 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
         $orX = $queryBuilder->expr()->orX(
             $queryBuilder->expr()->andX(
                 $queryBuilder->expr()->eq('o.activityId', ':activityId'),
-                $queryBuilder->expr()->eq('o.type', ':objectTypeActivity')
+                $queryBuilder->expr()->eq('o.type', ':typeActivity')
             )
         );
 
         $queryBuilder
             ->setParameter('activityId', $criteria['activity'])
-            ->setParameter('objectTypeActivity', 'activity');
+            ->setParameter('typeActivity', 'activity');
 
-        if (isset($criteria['related_activities'])) {
+        if (true === ($criteria['related_activities'] ?? false)) {
 
+            $this->findStatementsRelatedActivities($queryBuilder, $orX);
         }
 
         $queryBuilder->andWhere($orX);
