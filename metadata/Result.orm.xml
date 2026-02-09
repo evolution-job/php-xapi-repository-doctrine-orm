@@ -10,11 +10,11 @@
 
         <field name="hasScore" type="boolean" />
         <field name="scaled" type="float" nullable="true" />
-        <field name="raw" type="float" nullable="true" />
-        <field name="min" type="float" nullable="true" />
-        <field name="max" type="float" nullable="true" />
+        <field name="raw" type="float" column="`raw`" nullable="true" />
+        <field name="min" type="float" column="`min`" nullable="true" />
+        <field name="max" type="float" column="`max`" nullable="true" />
         <field name="success" type="boolean" nullable="true" />
-        <field name="completion" type="boolean" nullable="true" />
+        <field name="completion" type="boolean" column="`completion`" nullable="true" />
         <field name="response" type="text" nullable="true" />
         <field name="duration" type="string" nullable="true" />
 

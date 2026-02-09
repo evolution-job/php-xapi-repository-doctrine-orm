@@ -14,7 +14,7 @@
         </indexes>
 
         <!-- discriminator column -->
-        <field name="type" type="string" nullable="true" />
+        <field name="type" type="string" column="`type`" nullable="true" />
 
         <!-- activity -->
         <field name="activityId" column="activity_id" type="string" nullable="true" />
@@ -32,7 +32,7 @@
         <field name="openId" type="string" nullable="true" />
         <field name="accountName" type="string" nullable="true" />
         <field name="accountHomePage" type="string" nullable="true" />
-        <field name="name" type="string" nullable="true" />
+        <field name="name" type="string" column="`name`" nullable="true" />
 
         <!-- statement reference -->
         <field name="referencedStatementId" type="string" nullable="true" />

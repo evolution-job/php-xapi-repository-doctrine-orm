@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+0.5
+-----
+
+* dropped doctrine QuoteStrategy service and fix columns names
+* minimal Symfony packages version bumped to 7.4
+
 0.4
 -----
 
@@ -16,7 +22,7 @@ CHANGELOG
 -----
 
 * dropped support for PHP < 8.1
-* add QuoteStrategy
+* add QuoteStrategy service
 * Replace "json_array" by "json" into metadata 
 * All dependencies from php-xapi/* are now loaded from forks at `https://github.com/evolution-job/`
 

@@ -12,7 +12,7 @@
         </id>
 
         <field name="created" type="datetime" nullable="true" />
-        <field name="stored" type="datetime" nullable="true" />
+        <field name="stored" type="datetime" column="`stored`" nullable="true" />
         <field name="hasAttachments" type="boolean" />
 
         <many-to-one field="actor" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">

@@ -25,9 +25,9 @@
             <join-column referenced-column-name="identifier" on-delete="CASCADE" />
         </many-to-one>
 
-        <field name="data" type="text" nullable="true" />
+        <field name="data" type="text" column="`data`" nullable="true" />
 
-        <field name="registrationId" type="string" column="registration" nullable="true" />
+        <field name="registrationId" type="string" column="`registration`" nullable="true" />
 
     </entity>
 </doctrine-mapping>

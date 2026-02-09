@@ -9,14 +9,14 @@
         </id>
 
         <indexes>
-            <index columns="registration" name="registration_uniq_search_index"></index>
+            <index columns="`registration`" name="registration_uniq_search_index"></index>
         </indexes>
 
-        <field name="registration" type="string" nullable="true" />
+        <field name="registration" type="string" column="`registration`" nullable="true" />
         <field name="hasContextActivities" type="boolean" nullable="true" />
         <field name="revision" type="string" nullable="true" />
         <field name="platform" type="string" nullable="true" />
-        <field name="language" type="string" nullable="true" />
+        <field name="language" type="string" column="`language`" nullable="true" />
         <field name="statement" type="string" nullable="true" />
 
         <one-to-one field="instructor" target-entity="XApi\Repository\Doctrine\Mapping\StatementObject">

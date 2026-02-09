@@ -25,7 +25,6 @@ use Doctrine\Persistence\ObjectManager;
 use Override;
 use XApi\Repository\Doctrine\Mapping\Statement;
 use XApi\Repository\Doctrine\Tests\Functional\StatementRepositoryTestCase;
-use XApi\Repository\ORM\QuoteStrategy;
 
 class StatementRepositoryTest extends StatementRepositoryTestCase
 {
@@ -39,7 +38,6 @@ class StatementRepositoryTest extends StatementRepositoryTestCase
         $configuration = new Configuration();
         $configuration->setProxyDir(__DIR__ . '/../cache/proxies');
         $configuration->setProxyNamespace('Proxy');
-        $configuration->setQuoteStrategy(new QuoteStrategy());
 
         $symfonyFileLocator = new SymfonyFileLocator([__DIR__ . '/../../metadata' => 'XApi\Repository\Doctrine\Mapping'], '.orm.xml');
 
