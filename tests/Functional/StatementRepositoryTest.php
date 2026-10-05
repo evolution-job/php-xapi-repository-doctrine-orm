@@ -31,6 +31,7 @@ use Xabbuh\XApi\DataFixtures\VerbFixtures;
 use Xabbuh\XApi\Model\Activity;
 use Xabbuh\XApi\Model\IRI;
 use Xabbuh\XApi\Model\LanguageMap;
+use Xabbuh\XApi\Model\Statement as StatementModel;
 use Xabbuh\XApi\Model\StatementReference;
 use Xabbuh\XApi\Model\StatementsFilter;
 use Xabbuh\XApi\Model\Verb;
@@ -47,6 +48,37 @@ use XApi\Repository\ORM\VerbRepository as OrmVerbRepository;
 
 class StatementRepositoryTest extends StatementRepositoryTestCase
 {
+    public function testStatementListsExcludeVoidedStatements(): void
+    {
+        $statement = StatementFixtures::getMinimalStatement('12345678-1234-5678-8234-567812345678');
+        $voidingStatement = StatementFixtures::getVoidingStatement(
+            '12345678-1234-5678-8234-567812345679',
+            $statement->getId()->getValue()
+        );
+        $referencingStatement = StatementFixtures::getMinimalStatement('12345678-1234-5678-8234-567812345680')
+            ->withObject(new StatementReference($statement->getId()));
+        $repository = new DoctrineStatementRepository($this->repository);
+
+        $repository->storeStatement($statement);
+        $repository->storeStatement($voidingStatement);
+        $repository->storeStatement($referencingStatement);
+
+        $statements = $repository->findStatementsBy(
+            (new StatementsFilter())
+                ->byActivity(ActivityFixtures::getTypicalActivity())
+                ->ascending()
+                ->limit(10)
+        );
+        $statementIds = array_map(
+            static fn(StatementModel $statement): string => $statement->getId()->getValue(),
+            $statements
+        );
+
+        self::assertNotContains($statement->getId()->getValue(), $statementIds);
+        self::assertContains($voidingStatement->getId()->getValue(), $statementIds);
+        self::assertContains($referencingStatement->getId()->getValue(), $statementIds);
+    }
+
     public function testSinceFiltersByStoredTimeExclusively(): void
     {
         $atBoundary = StatementFixtures::getMinimalStatement('12345678-1234-5678-8234-567812345678')

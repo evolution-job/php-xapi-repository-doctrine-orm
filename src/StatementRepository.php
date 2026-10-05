@@ -108,8 +108,11 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
         return $statements;
     }
 
-    private function createStatementsQueryBuilder(array $criteria, bool $selectEntities): QueryBuilder
-    {
+    private function createStatementsQueryBuilder(
+        array $criteria,
+        bool $selectEntities,
+        bool $excludeVoided = true
+    ): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('s');
 
         $queryBuilder
@@ -118,6 +121,10 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
             ->leftJoin('s.verb', 'v')
             ->leftJoin('s.object', 'o')
             ->leftJoin('s.context', 'c');
+
+        if ($excludeVoided) {
+            $this->excludeVoidedStatements($queryBuilder);
+        }
 
         $this->resolveActivityFilter($queryBuilder, $criteria);
 
@@ -154,6 +161,23 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
         return $queryBuilder;
     }
 
+    private function excludeVoidedStatements(QueryBuilder $queryBuilder): void
+    {
+        $voidingStatements = $this->getEntityManager()->createQueryBuilder()
+            ->select('voidingStatement.id')
+            ->from(Statement::class, 'voidingStatement')
+            ->innerJoin('voidingStatement.verb', 'voidingVerb')
+            ->innerJoin('voidingStatement.object', 'voidingObject')
+            ->where('voidingVerb.id = :voidedVerb')
+            ->andWhere('voidingObject.type = :statementReference')
+            ->andWhere('voidingObject.referencedStatementId = s.id');
+
+        $queryBuilder
+            ->andWhere($queryBuilder->expr()->not($queryBuilder->expr()->exists($voidingStatements->getDQL())))
+            ->setParameter('voidedVerb', 'http://adlnet.gov/expapi/verbs/voided')
+            ->setParameter('statementReference', MappedStatementObject::TYPE_STATEMENT_REFERENCE);
+    }
+
     private function applyStoredTimeFilters(QueryBuilder $queryBuilder, array $criteria): void
     {
         if (isset($criteria['since'])) {
@@ -174,7 +198,7 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
      */
     private function findMatchingStatementIds(array $criteria): array
     {
-        $rows = $this->createStatementsQueryBuilder($criteria, false)->getQuery()->getScalarResult();
+        $rows = $this->createStatementsQueryBuilder($criteria, false, false)->getQuery()->getScalarResult();
 
         return array_column($rows, 'id');
     }
