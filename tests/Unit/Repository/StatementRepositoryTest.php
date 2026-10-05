@@ -15,10 +15,12 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\DefaultNamingStrategy;
 use Doctrine\ORM\UnitOfWork;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use XApi\Repository\Doctrine\Mapping\Statement;
 use XApi\Repository\Doctrine\Tests\Unit\Repository\Mapping\StatementRepositoryTestCase;
 use XApi\Repository\ORM\StatementRepository;
 
+#[AllowMockObjectsWithoutExpectations]
 class StatementRepositoryTest extends StatementRepositoryTestCase
 {
     protected function getObjectManagerClass(): string

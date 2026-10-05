@@ -11,6 +11,7 @@
 
 namespace XApi\Repository\ORM;
 
+use DateTimeImmutable;
 use Doctrine\ORM\EntityRepository;
 use XApi\Repository\Doctrine\Mapping\State;
 use XApi\Repository\Doctrine\Repository\Mapping\StateRepository as BaseStateRepository;
@@ -45,7 +46,7 @@ final class StateRepository extends EntityRepository implements BaseStateReposit
     /**
      * {@inheritdoc}
      */
-    public function findStates(State $state): array
+    public function findStates(State $state, ?DateTimeImmutable $since = null): array
     {
         if ($agent = DoctrineQueryHelper::findActor($this->getEntityManager()->createQueryBuilder(), $state->agent)) {
             $state->agent = $agent;
@@ -60,7 +61,22 @@ final class StateRepository extends EntityRepository implements BaseStateReposit
             $criteria['registrationId'] = $state->registrationId;
         }
 
-        return $this->findBy($criteria);
+        if (null === $since) {
+            return $this->findBy($criteria);
+        }
+
+        $queryBuilder = $this->createQueryBuilder('state');
+        foreach ($criteria as $field => $value) {
+            $queryBuilder
+                ->andWhere(sprintf('state.%s = :%s', $field, $field))
+                ->setParameter($field, $value);
+        }
+
+        return $queryBuilder
+            ->andWhere('state.updatedAt > :since')
+            ->setParameter('since', $since)
+            ->getQuery()
+            ->getResult();
     }
 
     public function removeState(State $state, bool $flush = true): void
@@ -86,11 +102,15 @@ final class StateRepository extends EntityRepository implements BaseStateReposit
         }
 
         $foundState = $this->findState($state);
+        $now = new DateTimeImmutable();
 
         if ($foundState instanceof State) { // Update
             $foundState->data = $state->data;
+            $foundState->contentType = $state->contentType;
+            $foundState->updatedAt = $now;
             $this->getEntityManager()->persist($foundState);
         } else {
+            $state->updatedAt = $now;
             $this->getEntityManager()->persist($state);
         }
 

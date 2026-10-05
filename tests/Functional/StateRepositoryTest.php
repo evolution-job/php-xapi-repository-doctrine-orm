@@ -11,6 +11,7 @@
 
 namespace XApi\Repository\ORM\Tests\Functional;
 
+use DateTimeImmutable;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
@@ -23,11 +24,26 @@ use Doctrine\ORM\Tools\ToolsException;
 use Doctrine\Persistence\Mapping\Driver\SymfonyFileLocator;
 use Doctrine\Persistence\ObjectManager;
 use Override;
+use Xabbuh\XApi\DataFixtures\StateFixtures;
 use XApi\Repository\Doctrine\Mapping\State;
 use XApi\Repository\Doctrine\Tests\Functional\StateRepositoryTestCase;
 
 class StateRepositoryTest extends StateRepositoryTestCase
 {
+    public function testFindStatesSinceIsExclusive(): void
+    {
+        $stateModel = StateFixtures::getMinimalState();
+        $state = State::fromModel($stateModel);
+        $since = new DateTimeImmutable('2024-01-01T00:00:00+00:00');
+        $state->updatedAt = $since;
+
+        $this->objectManager->persist($state);
+        $this->objectManager->flush();
+
+        self::assertSame([], $this->repository->findStates($state, $since));
+        self::assertCount(1, $this->repository->findStates($state, $since->modify('-1 second')));
+    }
+
     /**
      * @throws MissingMappingDriverImplementation
      * @throws Exception

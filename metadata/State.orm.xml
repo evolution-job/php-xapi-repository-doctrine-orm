@@ -29,5 +29,9 @@
 
         <field name="registrationId" type="string" column="`registration`" nullable="true" />
 
+        <field name="updatedAt" type="datetime_immutable" column="updated_at" nullable="true" />
+
+        <field name="contentType" type="string" column="content_type" nullable="true" />
+
     </entity>
 </doctrine-mapping>
