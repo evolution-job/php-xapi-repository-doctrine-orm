@@ -11,6 +11,7 @@
 
 namespace XApi\Repository\ORM\Tests\Functional;
 
+use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
@@ -23,11 +24,45 @@ use Doctrine\ORM\Tools\ToolsException;
 use Doctrine\Persistence\Mapping\Driver\SymfonyFileLocator;
 use Doctrine\Persistence\ObjectManager;
 use Override;
+use Xabbuh\XApi\DataFixtures\StatementFixtures;
+use Xabbuh\XApi\Model\StatementsFilter;
 use XApi\Repository\Doctrine\Mapping\Statement;
+use XApi\Repository\Doctrine\Repository\StatementRepository as DoctrineStatementRepository;
 use XApi\Repository\Doctrine\Tests\Functional\StatementRepositoryTestCase;
 
 class StatementRepositoryTest extends StatementRepositoryTestCase
 {
+    public function testSinceFiltersByStoredTimeExclusively(): void
+    {
+        $atBoundary = StatementFixtures::getMinimalStatement('12345678-1234-5678-8234-567812345678')
+            ->withCreated(new DateTime('2024-01-01T12:00:00+00:00'));
+        $afterBoundary = StatementFixtures::getMinimalStatement('12345678-1234-5678-8234-567812345679')
+            ->withCreated(new DateTime('2023-01-01T12:00:00+00:00'));
+
+        $mappedAtBoundary = Statement::fromModel($atBoundary);
+        $mappedAtBoundary->stored = new DateTime('2024-01-01T12:00:00+00:00');
+        $mappedAfterBoundary = Statement::fromModel($afterBoundary);
+        $mappedAfterBoundary->stored = new DateTime('2024-01-01T12:00:01+00:00');
+        $mappedAfterBoundary->actor = $mappedAtBoundary->actor;
+        $mappedAfterBoundary->verb = $mappedAtBoundary->verb;
+        $mappedAfterBoundary->object = $mappedAtBoundary->object;
+
+        $this->objectManager->persist($mappedAtBoundary);
+        $this->objectManager->persist($mappedAfterBoundary);
+        $this->objectManager->flush();
+
+        $repository = new DoctrineStatementRepository($this->repository);
+        $result = $repository->findStatementsBy(
+            (new StatementsFilter())
+                ->since(new DateTime('2024-01-01T12:00:00+00:00'))
+                ->ascending()
+                ->limit(10)
+        );
+
+        self::assertCount(1, $result);
+        self::assertSame($afterBoundary->getId()->getValue(), $result[0]->getId()->getValue());
+    }
+
     /**
      * @throws MissingMappingDriverImplementation
      * @throws Exception

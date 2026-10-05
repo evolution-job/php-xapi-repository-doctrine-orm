@@ -11,6 +11,8 @@
 
 namespace XApi\Repository\ORM;
 
+use DateMalformedStringException;
+use DateTime;
 use Doctrine\ORM\EntityRepository as parentAlias;
 use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\Expr\Andx;
@@ -35,6 +37,7 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
     /**
      * {@inheritdoc}
      * https://github.com/adlnet/xAPI-Spec/blob/master/xAPI-Communication.md#213-get-statements
+     * @throws DateMalformedStringException
      */
     public function findStatements(array $criteria): array
     {
@@ -47,7 +50,7 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
             ->leftJoin('s.object', 'o')
             ->leftJoin('s.context', 'c')
             ->setMaxResults($criteria['limit'])
-            ->orderBy('s.created', $criteria['ascending'] === 'true' ? 'ASC' : 'DESC');
+            ->orderBy('s.stored', $criteria['ascending'] === 'true' ? 'ASC' : 'DESC');
 
         $this->resolveActivityFilter($queryBuilder, $criteria);
 
@@ -67,14 +70,14 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
 
         if (isset($criteria['since'])) {
             $queryBuilder
-                ->andWhere($queryBuilder->expr()->gte('s.created', ':since'))
-                ->setParameter('since', $criteria['since']);
+                ->andWhere($queryBuilder->expr()->gt('s.stored', ':since'))
+                ->setParameter('since', new DateTime($criteria['since']));
         }
 
         if (isset($criteria['until'])) {
             $queryBuilder
-                ->andWhere($queryBuilder->expr()->lte('s.created', ':until'))
-                ->setParameter('until', $criteria['until']);
+                ->andWhere($queryBuilder->expr()->lte('s.stored', ':until'))
+                ->setParameter('until', new DateTime($criteria['until']));
         }
 
         if (isset($criteria['attachments'])) {
