@@ -25,12 +25,25 @@ use Doctrine\Persistence\Mapping\Driver\SymfonyFileLocator;
 use Doctrine\Persistence\ObjectManager;
 use Override;
 use Xabbuh\XApi\DataFixtures\ActivityFixtures;
+use Xabbuh\XApi\DataFixtures\DefinitionFixtures;
 use Xabbuh\XApi\DataFixtures\StatementFixtures;
+use Xabbuh\XApi\DataFixtures\VerbFixtures;
+use Xabbuh\XApi\Model\Activity;
+use Xabbuh\XApi\Model\IRI;
+use Xabbuh\XApi\Model\LanguageMap;
 use Xabbuh\XApi\Model\StatementReference;
 use Xabbuh\XApi\Model\StatementsFilter;
+use Xabbuh\XApi\Model\Verb;
 use XApi\Repository\Doctrine\Mapping\Statement;
+use XApi\Repository\Doctrine\Mapping\StatementObject as MappedStatementObject;
+use XApi\Repository\Doctrine\Mapping\Verb as MappedVerb;
+use XApi\Repository\Doctrine\Repository\ActivityRepository as DoctrineActivityRepository;
 use XApi\Repository\Doctrine\Repository\StatementRepository as DoctrineStatementRepository;
+use XApi\Repository\Doctrine\Repository\VerbRepository as DoctrineVerbRepository;
 use XApi\Repository\Doctrine\Tests\Functional\StatementRepositoryTestCase;
+use XApi\Repository\ORM\DoctrineQueryHelper;
+use XApi\Repository\ORM\StatementObjectRepository as OrmStatementObjectRepository;
+use XApi\Repository\ORM\VerbRepository as OrmVerbRepository;
 
 class StatementRepositoryTest extends StatementRepositoryTestCase
 {
@@ -112,6 +125,60 @@ class StatementRepositoryTest extends StatementRepositoryTestCase
         self::assertSame($middle->getId()->getValue(), $firstPage[0]->getId()->getValue());
         self::assertCount(1, $laterPage);
         self::assertSame($outer->getId()->getValue(), $laterPage[0]->getId()->getValue());
+    }
+
+    public function testVerbRepositoryReturnsCanonicalDisplay(): void
+    {
+        $verb = VerbFixtures::getTypicalVerb();
+        $mappedVerb = MappedVerb::fromModel($verb);
+        $this->objectManager->persist($mappedVerb);
+        $this->objectManager->flush();
+
+        $ormRepository = new OrmVerbRepository(
+            $this->objectManager,
+            $this->objectManager->getClassMetadata(MappedVerb::class)
+        );
+        $repository = new DoctrineVerbRepository($ormRepository);
+        $foundVerb = $repository->findVerbById($verb->getId());
+
+        self::assertSame($verb->getId()->getValue(), $foundVerb->getId()->getValue());
+        self::assertTrue($verb->getDisplay()->equals($foundVerb->getDisplay()));
+    }
+
+    public function testActivityRepositorySelectsTheFirstStoredDefinitionAsCanonical(): void
+    {
+        $activityId = IRI::fromString('https://example.com/activity');
+        $firstActivity = new Activity($activityId, DefinitionFixtures::getNameDefinition());
+        $laterActivity = new Activity($activityId, DefinitionFixtures::getDescriptionDefinition());
+        $this->objectManager->persist(MappedStatementObject::fromModel($firstActivity));
+        $this->objectManager->persist(MappedStatementObject::fromModel($laterActivity));
+        $this->objectManager->flush();
+
+        $mappedRepository = new OrmStatementObjectRepository(
+            $this->objectManager,
+            $this->objectManager->getClassMetadata(MappedStatementObject::class)
+        );
+        $repository = new DoctrineActivityRepository($mappedRepository);
+        $canonicalActivity = $repository->findActivityById($activityId);
+
+        self::assertSame('test', $canonicalActivity->getDefinition()->getName()['en-US']);
+        self::assertNull($canonicalActivity->getDefinition()->getDescription());
+    }
+
+    public function testStoreMergesNewVerbDisplayLanguagesWithoutReplacingCanonicalValues(): void
+    {
+        $verb = VerbFixtures::getTypicalVerb();
+        $mappedVerb = MappedVerb::fromModel($verb);
+        $this->objectManager->persist($mappedVerb);
+        $this->objectManager->flush();
+
+        $incomingVerb = new Verb($verb->getId(), LanguageMap::create(['fr' => 'terminé', 'en-US' => 'fini']));
+        $foundVerb = DoctrineQueryHelper::findVerb(
+            $this->objectManager->createQueryBuilder(),
+            MappedVerb::fromModel($incomingVerb)
+        );
+
+        self::assertSame(['en-US' => 'test', 'fr' => 'terminé'], $foundVerb->display);
     }
 
     /**

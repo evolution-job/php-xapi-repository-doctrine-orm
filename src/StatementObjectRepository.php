@@ -25,6 +25,6 @@ final class StatementObjectRepository extends parentAlias implements BaseStateme
      */
     public function findObject(array $criteria): ?StatementObject
     {
-        return $this->findOneBy($criteria);
+        return $this->findOneBy($criteria, ['identifier' => 'ASC']);
     }
 }

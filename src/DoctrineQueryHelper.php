@@ -157,10 +157,13 @@ abstract class DoctrineQueryHelper
 
         try {
             if ($foundVerb = $queryBuilder->getQuery()->getOneOrNullResult()) {
+                if (null !== $verb->display) {
+                    $foundVerb->display ??= [];
 
-                foreach ($verb->display as $k => $v) {
-                    if (!array_key_exists($k, $verb->display)) {
-                        $foundVerb->display[$k] = $v; // Add new display
+                    foreach ($verb->display as $languageTag => $display) {
+                        if (!array_key_exists($languageTag, $foundVerb->display)) {
+                            $foundVerb->display[$languageTag] = $display;
+                        }
                     }
                 }
 

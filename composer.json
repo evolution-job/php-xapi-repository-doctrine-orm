@@ -36,8 +36,8 @@
         "php": "^8.4",
         "ext-json": "*",
         "doctrine/orm": "^3.0",
-        "php-xapi/repository-api": "^0.6",
-        "php-xapi/repository-doctrine": "^0.6"
+        "php-xapi/repository-api": "^0.6.1",
+        "php-xapi/repository-doctrine": "^0.6.1"
     },
     "require-dev": {
         "roave/security-advisories": "dev-latest",
