@@ -3,8 +3,6 @@
 /*
  * This file is part of the xAPI package.
  *
- * (c) Christian Flothmann <christian.flothmann@xabbuh.de>
- *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -46,6 +44,9 @@ use XApi\Repository\ORM\DoctrineQueryHelper;
 use XApi\Repository\ORM\StatementObjectRepository as OrmStatementObjectRepository;
 use XApi\Repository\ORM\VerbRepository as OrmVerbRepository;
 
+/**
+ * @author Mathieu Boldo <mathieu.boldo@entrili.com>
+ */
 class StatementRepositoryTest extends StatementRepositoryTestCase
 {
     public function testStatementListsExcludeVoidedStatements(): void
@@ -64,7 +65,7 @@ class StatementRepositoryTest extends StatementRepositoryTestCase
         $repository->storeStatement($referencingStatement);
 
         $statements = $repository->findStatementsBy(
-            (new StatementsFilter())
+            new StatementsFilter()
                 ->byActivity(ActivityFixtures::getTypicalActivity())
                 ->ascending()
                 ->limit(10)
@@ -100,7 +101,7 @@ class StatementRepositoryTest extends StatementRepositoryTestCase
 
         $repository = new DoctrineStatementRepository($this->repository);
         $result = $repository->findStatementsBy(
-            (new StatementsFilter())
+            new StatementsFilter()
                 ->since(new DateTime('2024-01-01T12:00:00+00:00'))
                 ->ascending()
                 ->limit(10)
@@ -139,14 +140,14 @@ class StatementRepositoryTest extends StatementRepositoryTestCase
 
         $repository = new DoctrineStatementRepository($this->repository);
         $firstPage = $repository->findStatementsBy(
-            (new StatementsFilter())
+            new StatementsFilter()
                 ->byActivity($activity)
                 ->since(new DateTime('2024-01-01T12:00:00+00:00'))
                 ->ascending()
                 ->limit(1)
         );
         $laterPage = $repository->findStatementsBy(
-            (new StatementsFilter())
+            new StatementsFilter()
                 ->byActivity($activity)
                 ->since(new DateTime('2024-01-02T12:00:00+00:00'))
                 ->ascending()

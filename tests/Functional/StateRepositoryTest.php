@@ -3,8 +3,6 @@
 /*
  * This file is part of the xAPI package.
  *
- * (c) Christian Flothmann <christian.flothmann@xabbuh.de>
- *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
@@ -28,6 +26,9 @@ use Xabbuh\XApi\DataFixtures\StateFixtures;
 use XApi\Repository\Doctrine\Mapping\State;
 use XApi\Repository\Doctrine\Tests\Functional\StateRepositoryTestCase;
 
+/**
+ * @author Mathieu Boldo <mathieu.boldo@entrili.com>
+ */
 class StateRepositoryTest extends StateRepositoryTestCase
 {
     public function testFindStatesSinceIsExclusive(): void

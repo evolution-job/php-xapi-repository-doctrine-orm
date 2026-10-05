@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is part of the xAPI package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace XApi\Repository\ORM\Tests\Functional;
 
 use Doctrine\DBAL\DriverManager;
@@ -15,6 +22,9 @@ use XApi\Repository\Doctrine\Mapping\Verb;
 use XApi\Repository\Doctrine\Tests\Functional\VerbRepositoryTestCase;
 use XApi\Repository\ORM\VerbRepository;
 
+/**
+ * @author Mathieu Boldo <mathieu.boldo@entrili.com>
+ */
 final class VerbRepositoryTest extends VerbRepositoryTestCase
 {
     protected function createObjectManager(): ObjectManager

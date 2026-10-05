@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is part of the xAPI package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace XApi\Repository\ORM\Tests\Functional;
 
 use Doctrine\DBAL\DriverManager;
@@ -15,6 +22,9 @@ use XApi\Repository\Doctrine\Mapping\StatementObject;
 use XApi\Repository\Doctrine\Tests\Functional\StatementObjectRepositoryTestCase;
 use XApi\Repository\ORM\StatementObjectRepository;
 
+/**
+ * @author Mathieu Boldo <mathieu.boldo@entrili.com>
+ */
 final class StatementObjectRepositoryTest extends StatementObjectRepositoryTestCase
 {
     protected function createObjectManager(): ObjectManager
@@ -24,7 +34,7 @@ final class StatementObjectRepositoryTest extends StatementObjectRepositoryTestC
         $configuration->setProxyNamespace('Proxy');
         $configuration->setMetadataDriverImpl(new XmlDriver(new SymfonyFileLocator([__DIR__.'/../../metadata' => 'XApi\\Repository\\Doctrine\\Mapping'], '.orm.xml')));
         $entityManager = new EntityManager(DriverManager::getConnection(['driver' => 'sqlite3', 'memory' => true, 'url' => 'sqlite3:///:memory:'], $configuration), $configuration);
-        (new SchemaTool($entityManager))->createSchema($entityManager->getMetadataFactory()->getAllMetadata());
+        new SchemaTool($entityManager)->createSchema($entityManager->getMetadataFactory()->getAllMetadata());
 
         return $entityManager;
     }
