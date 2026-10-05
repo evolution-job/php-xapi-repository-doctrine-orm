@@ -11,6 +11,7 @@
         <!-- indexes -->
         <indexes>
             <index columns="activity_id,activity_type" name="activity_uniq_search_index"></index>
+            <index columns="referencedStatementId" name="statement_reference_lookup_index"></index>
         </indexes>
 
         <!-- discriminator column -->

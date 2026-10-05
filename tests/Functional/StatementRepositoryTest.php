@@ -24,7 +24,9 @@ use Doctrine\ORM\Tools\ToolsException;
 use Doctrine\Persistence\Mapping\Driver\SymfonyFileLocator;
 use Doctrine\Persistence\ObjectManager;
 use Override;
+use Xabbuh\XApi\DataFixtures\ActivityFixtures;
 use Xabbuh\XApi\DataFixtures\StatementFixtures;
+use Xabbuh\XApi\Model\StatementReference;
 use Xabbuh\XApi\Model\StatementsFilter;
 use XApi\Repository\Doctrine\Mapping\Statement;
 use XApi\Repository\Doctrine\Repository\StatementRepository as DoctrineStatementRepository;
@@ -61,6 +63,55 @@ class StatementRepositoryTest extends StatementRepositoryTestCase
 
         self::assertCount(1, $result);
         self::assertSame($afterBoundary->getId()->getValue(), $result[0]->getId()->getValue());
+    }
+
+    public function testStatementRefFiltersApplyTimeAndLimitToReferencingStatements(): void
+    {
+        $activity = ActivityFixtures::getTypicalActivity();
+        $target = StatementFixtures::getMinimalStatement('12345678-1234-5678-8234-567812345678')
+            ->withObject($activity);
+        $middle = StatementFixtures::getMinimalStatement('12345678-1234-5678-8234-567812345679')
+            ->withObject(new StatementReference($target->getId()));
+        $outer = StatementFixtures::getMinimalStatement('12345678-1234-5678-8234-567812345680')
+            ->withObject(new StatementReference($middle->getId()));
+
+        $mappedTarget = Statement::fromModel($target);
+        $mappedTarget->stored = new DateTime('2024-01-01T00:00:00+00:00');
+        $mappedMiddle = Statement::fromModel($middle);
+        $mappedMiddle->stored = new DateTime('2024-01-02T00:00:00+00:00');
+        $mappedOuter = Statement::fromModel($outer);
+        $mappedOuter->stored = new DateTime('2024-01-03T00:00:00+00:00');
+
+        foreach ([$mappedMiddle, $mappedOuter] as $mappedStatement) {
+            $mappedStatement->actor = $mappedTarget->actor;
+            $mappedStatement->verb = $mappedTarget->verb;
+        }
+
+        $this->objectManager->persist($mappedTarget);
+        $this->objectManager->persist($mappedMiddle);
+        $this->objectManager->persist($mappedOuter);
+        $this->objectManager->flush();
+
+        $repository = new DoctrineStatementRepository($this->repository);
+        $firstPage = $repository->findStatementsBy(
+            (new StatementsFilter())
+                ->byActivity($activity)
+                ->since(new DateTime('2024-01-01T12:00:00+00:00'))
+                ->ascending()
+                ->limit(1)
+        );
+        $laterPage = $repository->findStatementsBy(
+            (new StatementsFilter())
+                ->byActivity($activity)
+                ->since(new DateTime('2024-01-02T12:00:00+00:00'))
+                ->ascending()
+                ->limit(10)
+        );
+
+        self::assertCount(1, $firstPage);
+        self::assertSame($middle->getId()->getValue(), $firstPage[0]->getId()->getValue());
+        self::assertCount(1, $laterPage);
+        self::assertSame($outer->getId()->getValue(), $laterPage[0]->getId()->getValue());
     }
 
     /**

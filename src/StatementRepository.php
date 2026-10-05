@@ -19,6 +19,7 @@ use Doctrine\ORM\Query\Expr\Andx;
 use Doctrine\ORM\QueryBuilder;
 use Xabbuh\XApi\Model\Agent;
 use XApi\Repository\Doctrine\Mapping\Statement;
+use XApi\Repository\Doctrine\Mapping\StatementObject as MappedStatementObject;
 use XApi\Repository\Doctrine\Repository\Mapping\StatementRepository as BaseStatementRepository;
 
 /**
@@ -26,6 +27,8 @@ use XApi\Repository\Doctrine\Repository\Mapping\StatementRepository as BaseState
  */
 final class StatementRepository extends parentAlias implements BaseStatementRepository
 {
+    private const int STATEMENT_ID_QUERY_CHUNK_SIZE = 500;
+
     /**
      * {@inheritdoc}
      */
@@ -41,16 +44,80 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
      */
     public function findStatements(array $criteria): array
     {
+        $statements = [];
+        foreach ($this->createStatementsQueryBuilder($criteria, true)->getQuery()->getResult() as $statement) {
+            $statements[$statement->id] = $statement;
+        }
+
+        $filterCriteria = $criteria;
+        unset(
+            $filterCriteria['attachments'],
+            $filterCriteria['ascending'],
+            $filterCriteria['limit'],
+            $filterCriteria['since'],
+            $filterCriteria['until'],
+        );
+
+        $hasNonTimeFilters = [] !== array_intersect(
+            ['activity', 'agent', 'registration', 'verb'],
+            array_keys($filterCriteria)
+        );
+        $targetIds = $hasNonTimeFilters ? $this->findMatchingStatementIds($filterCriteria) : [];
+        $visitedIds = array_fill_keys($targetIds, true);
+        $referencedIds = [];
+
+        while ([] !== $targetIds) {
+            $nextIds = $this->findReferencingStatementIds($targetIds);
+            $targetIds = [];
+
+            foreach ($nextIds as $statementId) {
+                if (isset($visitedIds[$statementId])) {
+                    continue;
+                }
+
+                $visitedIds[$statementId] = true;
+                $referencedIds[$statementId] = true;
+                $targetIds[] = $statementId;
+            }
+        }
+
+        if ([] !== $referencedIds) {
+            $referenceCriteria = $criteria;
+            unset($referenceCriteria['limit']);
+
+            foreach ($this->findStatementsByIds(array_keys($referencedIds), $referenceCriteria) as $statement) {
+                $statements[$statement->id] = $statement;
+            }
+        }
+
+        $statements = array_values($statements);
+        $ascending = 'true' === ($criteria['ascending'] ?? 'false');
+        usort($statements, static function (Statement $left, Statement $right) use ($ascending): int {
+            $storedComparison = $left->stored <=> $right->stored;
+            if (0 !== $storedComparison) {
+                return $ascending ? $storedComparison : -$storedComparison;
+            }
+
+            return strcmp($left->id, $right->id);
+        });
+
+        if (isset($criteria['limit'])) {
+            $statements = array_slice($statements, 0, $criteria['limit']);
+        }
+
+        return $statements;
+    }
+
+    private function createStatementsQueryBuilder(array $criteria, bool $selectEntities): QueryBuilder
+    {
         $queryBuilder = $this->createQueryBuilder('s');
 
         $queryBuilder
-            ->select('s, a, o, v')
+            ->select($selectEntities ? 's, a, o, v' : 'DISTINCT s.id')
             ->leftJoin('s.actor', 'a')
             ->leftJoin('s.verb', 'v')
             ->leftJoin('s.object', 'o')
-            ->leftJoin('s.context', 'c')
-            ->setMaxResults($criteria['limit'])
-            ->orderBy('s.stored', $criteria['ascending'] === 'true' ? 'ASC' : 'DESC');
+            ->leftJoin('s.context', 'c');
 
         $this->resolveActivityFilter($queryBuilder, $criteria);
 
@@ -68,6 +135,27 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
                 ->setParameter('registration', $criteria['registration']);
         }
 
+        $this->applyStoredTimeFilters($queryBuilder, $criteria);
+
+        if ($selectEntities) {
+            $queryBuilder->orderBy('s.stored', ($criteria['ascending'] ?? 'false') === 'true' ? 'ASC' : 'DESC');
+        }
+
+        if ($selectEntities && isset($criteria['limit'])) {
+            $queryBuilder->setMaxResults($criteria['limit']);
+        }
+
+        if ($selectEntities && isset($criteria['attachments'])) {
+            $queryBuilder
+                ->addSelect('att')
+                ->leftJoin('s.attachments', 'att');
+        }
+
+        return $queryBuilder;
+    }
+
+    private function applyStoredTimeFilters(QueryBuilder $queryBuilder, array $criteria): void
+    {
         if (isset($criteria['since'])) {
             $queryBuilder
                 ->andWhere($queryBuilder->expr()->gt('s.stored', ':since'))
@@ -79,14 +167,67 @@ final class StatementRepository extends parentAlias implements BaseStatementRepo
                 ->andWhere($queryBuilder->expr()->lte('s.stored', ':until'))
                 ->setParameter('until', new DateTime($criteria['until']));
         }
+    }
 
-        if (isset($criteria['attachments'])) {
-            $queryBuilder
-                ->addSelect('att')
-                ->leftJoin('s.attachments', 'att');
+    /**
+     * @return string[]
+     */
+    private function findMatchingStatementIds(array $criteria): array
+    {
+        $rows = $this->createStatementsQueryBuilder($criteria, false)->getQuery()->getScalarResult();
+
+        return array_column($rows, 'id');
+    }
+
+    /**
+     * @param string[] $targetIds
+     * @return string[]
+     */
+    private function findReferencingStatementIds(array $targetIds): array
+    {
+        $referencingIds = [];
+
+        foreach (array_chunk($targetIds, self::STATEMENT_ID_QUERY_CHUNK_SIZE) as $targetIdChunk) {
+            $rows = $this->createQueryBuilder('s')
+                ->select('DISTINCT s.id')
+                ->leftJoin('s.object', 'o')
+                ->where('o.type = :statementReference')
+                ->andWhere('o.referencedStatementId IN (:targetIds)')
+                ->setParameter('statementReference', MappedStatementObject::TYPE_STATEMENT_REFERENCE)
+                ->setParameter('targetIds', $targetIdChunk)
+                ->getQuery()
+                ->getScalarResult();
+
+            foreach (array_column($rows, 'id') as $statementId) {
+                $referencingIds[$statementId] = $statementId;
+            }
         }
 
-        return $queryBuilder->getQuery()->getResult();
+        return array_values($referencingIds);
+    }
+
+    /**
+     * @param string[] $statementIds
+     * @return Statement[]
+     */
+    private function findStatementsByIds(array $statementIds, array $criteria): array
+    {
+        $statements = [];
+        $timeCriteria = array_intersect_key($criteria, array_flip(['since', 'until', 'ascending', 'attachments']));
+
+        foreach (array_chunk($statementIds, self::STATEMENT_ID_QUERY_CHUNK_SIZE) as $statementIdChunk) {
+            $rows = $this->createStatementsQueryBuilder($timeCriteria, true)
+                ->andWhere('s.id IN (:statementIds)')
+                ->setParameter('statementIds', $statementIdChunk)
+                ->getQuery()
+                ->getResult();
+
+            foreach ($rows as $statement) {
+                $statements[$statement->id] = $statement;
+            }
+        }
+
+        return array_values($statements);
     }
 
     /**
