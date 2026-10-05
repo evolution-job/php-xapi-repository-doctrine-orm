@@ -10,8 +10,12 @@
 
         <!-- indexes -->
         <indexes>
-            <index columns="activity_id,activity_type" name="activity_uniq_search_index"></index>
-            <index columns="referencedStatementId" name="statement_reference_lookup_index"></index>
+            <index columns="activity_id,`type`" name="activity_search_index" />
+            <index columns="`type`,referencedStatementId" name="statement_reference_lookup_index" />
+            <index columns="mbox" name="agent_mbox_search_index" />
+            <index columns="mboxSha1Sum" name="agent_mbox_sha1_search_index" />
+            <index columns="openId" name="agent_open_id_search_index" />
+            <index columns="accountName,accountHomePage" name="agent_account_search_index" />
         </indexes>
 
         <!-- discriminator column -->
