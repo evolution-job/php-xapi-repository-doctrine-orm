@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+0.6
+-----
+
+* include recursively referencing statements in non-time filtered queries
+* add an index for StatementRef lookups
+* filter by `stored` instead of `created`
+* add indexes for stored-time ordering and statement actor, activity, and
+  inverse-functional identifier filters
+* add ORM repository for canonical Verb lookups
+
 0.5
 -----
 
