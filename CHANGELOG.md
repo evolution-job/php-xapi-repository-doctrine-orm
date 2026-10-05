@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+0.7
+-----
+
+* add ORM storage for xAPI Profile documents
+* exclude voided Statements from Statement list queries while preserving
+  recursive StatementRef matching
+* persist State update timestamps and filter State queries by `since`
+* persist the Content-Type of State documents
+
 0.6
 -----
 
